@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bankly — Secure Login</title>
+    <!-- Project CSS -->
+    <link rel="stylesheet" href="bankLY home page.css">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Slim Bootstrap Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark slim-navbar">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <span class="brand-icon" style="color: #ffc107;">₿</span>
+                <span class="brand-text">Bankly</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarLogin"
+                    aria-controls="navbarLogin" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarLogin">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="bankly_navbar.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="bankly_navbar.html">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#support">Support</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Container -->
+    <div class="login-wrapper">
+        <div class="login-container">
+            <div class="login-box">
+                <!-- Header -->
+                <div class="login-header text-center mb-4">
+                    <div class="login-icon mb-3">
+                        <span style="font-size: 2.5rem; color: #ffc107;">₿</span>
+                    </div>
+                    <h2 class="login-title">Welcome Back</h2>
+                    <p class="text-muted login-subtitle">Sign in to your Bankly account</p>
+                </div>
+
+                <!-- Login Form -->
+                <form class="login-form" id="loginForm">
+                    <!-- Email Field -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Account Number</label>
+                        <input type="email" class="form-control login-input" id="email" placeholder="xxxx-xxxx-xxxx-xxxx-xxxx" required>
+                        <small class="form-text text-muted">We'll never share your Account Number.</small>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Pin number</label>
+                        <input type="password" class="form-control login-input" id="password" placeholder="Enter your PIN Number keep in mind it is a 4 digit code " required>
+                    </div>
+
+                    <!-- Remember Me & Forgot Password -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">
+                                Remember me
+                            </label>
+                        </div>
+                        <a href="#forgot" class="link-forgot">Forgot Account Number? or password</a>
+                    </div>
+
+                    <!-- Login Button -->
+                    <button type="submit" class="btn btn-login btn-block w-100 mb-3">Login</button>
+
+                    <!-- Divider -->
+                    <div class="divider mb-3">
+                        <span>or</span>
+                    </div>
+
+                    <!-- Alternative Login Options -->
+                    <button type="button" class="btn btn-outline-secondary w-100 mb-2">
+                        <span>Sign in with Biometric</span>
+                    </button>
+                </form>
+
+                <!-- Sign Up Link -->
+                <div class="text-center mt-4">
+                    <p class="text-muted">Don't have an account? <a href="#signup" class="link-signup">Create one</a></p>
+                </div>
+
+                <!-- Security Note -->
+                <div class="alert alert-info alert-sm mt-4" role="alert">
+                    <small><strong>🔒 Security Tip:</strong> Never share your PIN. Bankly will never ask for it via email or phone.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Simple form submission handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (email && password) {
+                alert(`Login attempt for: ${email}\n\nIn a real application, this would authenticate with a backend server.`);
+                // In production, send credentials securely to backend via HTTPS
+            }
+        });
+    </script>
+</body>
+</html>
