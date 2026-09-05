@@ -10,6 +10,47 @@ DARK_TEXT = "#172033"
 MUTED_TEXT = "#6D7890"
 BORDER = "#DCE4F2"
 
+THEMES = {
+    "Light": {
+        "background": "#F7F9FC",
+        "surface": "#FFFFFF",
+        "panel": "#EEF4FF",
+        "text": "#172033",
+        "muted": "#6D7890",
+        "border": "#DCE4F2",
+        "accent": "#246BFD",
+        "accent_hover": "#1748B5",
+        "accent_text": "#FFFFFF",
+    },
+    "Yellow": {
+        "background": "#FFFBEA",
+        "surface": "#FFFFFF",
+        "panel": "#FFF2B8",
+        "text": "#322A0B",
+        "muted": "#75682E",
+        "border": "#E8D77A",
+        "accent": "#E3B800",
+        "accent_hover": "#B78F00",
+        "accent_text": "#201A00",
+    },
+    "Aero": {
+        "background": "#EAFBFF",
+        "surface": "#FFFFFF",
+        "panel": "#D5F4FA",
+        "text": "#12313A",
+        "muted": "#4B737D",
+        "border": "#A7DDE7",
+        "accent": "#12B8D4",
+        "accent_hover": "#078BA5",
+        "accent_text": "#FFFFFF",
+    },
+}
+
+active_theme = "Light"
+theme_selectors = []
+rounded_buttons = []
+current_page = "Dashboard"
+
 balance_xrp = 0.00
 
 root = tk.Tk()
@@ -40,6 +81,20 @@ styles.configure(
 )
 
 
+def add_theme_selector(parent):
+    selector = ttk.Combobox(
+        parent,
+        values=tuple(THEMES),
+        state="readonly",
+        width=11,
+        font=("Segoe UI", 10),
+    )
+    selector.set(active_theme)
+    selector.bind("<<ComboboxSelected>>", lambda _event: apply_theme(selector.get()))
+    theme_selectors.append(selector)
+    return selector
+
+
 class RoundedButton(tk.Canvas):
     """A scalable rounded button that keeps its own hover state."""
 
@@ -57,6 +112,8 @@ class RoundedButton(tk.Canvas):
         self.text = text
         self.fill = PRIMARY_BLUE
         self.hover_fill = DEEP_BLUE
+        self.text_color = WHITE
+        rounded_buttons.append(self)
         self.bind("<Configure>", lambda _event: self.draw(self.fill))
         self.bind("<Enter>", lambda _event: self.draw(self.hover_fill))
         self.bind("<Leave>", lambda _event: self.draw(self.fill))
@@ -73,9 +130,16 @@ class RoundedButton(tk.Canvas):
             width / 2,
             height / 2,
             text=self.text,
-            fill=WHITE,
+            fill=self.text_color,
             font=("Segoe UI", 10, "bold"),
         )
+
+    def set_theme(self, theme):
+        self.fill = theme["accent"]
+        self.hover_fill = theme["accent_hover"]
+        self.text_color = theme["accent_text"]
+        self.configure(bg=theme["surface"])
+        self.draw(self.fill)
 
     def create_round_rect(self, x1, y1, x2, y2, radius, fill):
         diameter = radius * 2
@@ -152,6 +216,12 @@ class RoundedFrame(tk.Canvas):
         )
         self.tag_lower("surface")
 
+    def set_fill(self, fill):
+        self.fill = fill
+        self.content.configure(bg=fill)
+        self.configure(bg=fill)  # IMPORTANT: make canvas background follow theme
+        self.event_generate("<Configure>")
+
     def create_round_rect(self, x1, y1, x2, y2, radius, fill):
         diameter = radius * 2
         self.create_rectangle(
@@ -175,7 +245,6 @@ header_surface = RoundedFrame(root, WHITE, radius=18, margin=4, height=76)
 header_surface.grid(row=0, column=0, columnspan=2, sticky="ew", padx=12, pady=12)
 header = header_surface.content
 header.grid_propagate(False)
-header.grid_propagate(False)
 tk.Label(
     header, text="Bankly", font=("Segoe UI", 25, "bold"), fg=PRIMARY_BLUE, bg=WHITE
 ).pack(side="left", padx=28)
@@ -186,6 +255,7 @@ tk.Label(
     fg=MUTED_TEXT,
     bg=WHITE,
 ).pack(side="left", padx=4)
+add_theme_selector(header).pack(side="right", padx=24)
 
 sidebar_surface = RoundedFrame(root, PALE_BLUE, radius=18, margin=4, width=210)
 sidebar_surface.grid(row=1, column=0, sticky="nsew", padx=(12, 8), pady=(0, 12))
@@ -207,13 +277,21 @@ nav_buttons = {}
 
 
 def show_page(name):
+    global current_page
+    current_page = name
+    theme = THEMES[active_theme]
+
     for page in pages.values():
         page.grid_remove()
     pages[name].grid(row=0, column=0, sticky="nsew")
+
     for section, button in nav_buttons.items():
+        is_active = section == name
         button.configure(
-            bg=PRIMARY_BLUE if section == name else PALE_BLUE,
-            fg=WHITE if section == name else DARK_TEXT,
+            bg=theme["accent"] if is_active else theme["panel"],
+            fg=theme["accent_text"] if is_active else theme["text"],
+            activebackground=theme["accent_hover"],
+            activeforeground=theme["accent_text"],
         )
 
 
@@ -354,6 +432,7 @@ RoundedButton(
     width=150,
 ).grid(row=4, sticky="w")
 
+# NAV BUTTONS – now theme-aware (no hard-coded colors)
 for section in ("Dashboard", "Deposit", "Withdraw", "Transfer"):
     button = tk.Button(
         sidebar,
@@ -362,10 +441,6 @@ for section in ("Dashboard", "Deposit", "Withdraw", "Transfer"):
         anchor="w",
         padx=16,
         pady=10,
-        bg=PALE_BLUE,
-        fg=DARK_TEXT,
-        activebackground=PRIMARY_BLUE,
-        activeforeground=WHITE,
         relief="flat",
         bd=0,
         cursor="hand2",
@@ -374,5 +449,184 @@ for section in ("Dashboard", "Deposit", "Withdraw", "Transfer"):
     button.pack(fill="x", padx=12, pady=3)
     nav_buttons[section] = button
 
-show_page("Dashboard")
+auth_surface = RoundedFrame(root, WHITE, radius=24, margin=36)
+auth_surface.grid(
+    row=0, column=0, rowspan=2, columnspan=2, sticky="nsew", padx=48, pady=40
+)
+auth = auth_surface.content
+auth.grid_columnconfigure(0, weight=1)
+auth.grid_rowconfigure(3, weight=1)
+
+auth_header = tk.Frame(auth, bg=WHITE)
+auth_header.grid(row=0, column=0, sticky="ew")
+tk.Label(
+    auth_header, text="Bankly", font=("Segoe UI", 28, "bold"), fg=PRIMARY_BLUE, bg=WHITE
+).pack(side="left")
+add_theme_selector(auth_header).pack(side="right")
+
+auth_title = ttk.Label(auth, text="Sign in to Bankly", style="Title.TLabel")
+auth_title.grid(row=1, column=0, sticky="w", pady=(58, 4))
+auth_description = ttk.Label(
+    auth, text="Manage your XRP wallet from one calm workspace.", style="Body.TLabel"
+)
+auth_description.grid(row=2, column=0, sticky="w", pady=(0, 24))
+
+auth_form = tk.Frame(auth, bg=WHITE)
+auth_form.grid(row=3, column=0, sticky="nsew")
+auth_form.grid_columnconfigure(0, weight=1)
+tk.Label(
+    auth_form, text="Email", font=("Segoe UI", 11, "bold"), fg=DARK_TEXT, bg=WHITE
+).grid(sticky="w")
+auth_email = ttk.Entry(auth_form, font=("Segoe UI", 12))
+auth_email.grid(row=1, sticky="ew", pady=(8, 16))
+tk.Label(
+    auth_form, text="Password", font=("Segoe UI", 11, "bold"), fg=DARK_TEXT, bg=WHITE
+).grid(row=2, sticky="w")
+auth_password = ttk.Entry(auth_form, show="*", font=("Segoe UI", 12))
+auth_password.grid(row=3, sticky="ew", pady=(8, 20))
+
+
+def submit_auth():
+    if not auth_email.get().strip() or not auth_password.get().strip():
+        messagebox.showerror(
+            "Missing details", "Enter both an email and password to continue."
+        )
+        return
+    auth_surface.grid_remove()
+    header_surface.grid()
+    sidebar_surface.grid()
+    main_surface.grid()
+    show_page("Dashboard")
+
+
+auth_button = RoundedButton(auth_form, "Sign in", submit_auth, width=180)
+auth_button.grid(row=4, sticky="w")
+auth_switch = ttk.Label(
+    auth_form,
+    text="New to Bankly? Create an account",
+    style="Body.TLabel",
+    cursor="hand2",
+)
+auth_switch.grid(row=5, sticky="w", pady=(18, 0))
+
+
+def set_auth_mode(mode):
+    is_sign_up = mode == "Sign up"
+    auth_title.config(
+        text=f"{mode} to Bankly" if not is_sign_up else "Create your Bankly account"
+    )
+    auth_description.config(
+        text=(
+            "Use your wallet workspace securely."
+            if is_sign_up
+            else "Manage your XRP wallet from one calm workspace."
+        )
+    )
+    auth_button.text = mode
+    auth_button.draw(auth_button.fill)
+    auth_switch.config(
+        text=(
+            "Already have an account? Sign in"
+            if is_sign_up
+            else "New to Bankly? Create an account"
+        )
+    )
+    auth_switch.bind(
+        "<Button-1>",
+        lambda _event: set_auth_mode("Sign in" if is_sign_up else "Sign up"),
+    )
+
+
+auth_switch.bind("<Button-1>", lambda _event: set_auth_mode("Sign up"))
+
+
+def apply_theme(name):
+    global active_theme
+    active_theme = name
+    theme = THEMES[name]
+
+    root.configure(bg=theme["background"])
+    styles.configure(
+        "TEntry", fieldbackground=theme["surface"], bordercolor=theme["border"]
+    )
+    styles.configure("Page.TFrame", background=theme["surface"])
+    styles.configure("Card.TFrame", background=theme["surface"])
+    styles.configure(
+        "Body.TLabel", background=theme["surface"], foreground=theme["muted"]
+    )
+    styles.configure(
+        "Title.TLabel", background=theme["surface"], foreground=theme["text"]
+    )
+    styles.configure(
+        "CardTitle.TLabel", background=theme["surface"], foreground=theme["text"]
+    )
+    styles.configure(
+        "TCombobox",
+        fieldbackground=theme["surface"],
+        background=theme["surface"],
+        foreground=theme["text"],
+    )
+
+    for selector in theme_selectors:
+        selector.set(name)
+
+    for surface, fill in (
+        (header_surface, theme["surface"]),
+        (sidebar_surface, theme["panel"]),
+        (main_surface, theme["surface"]),
+        (auth_surface, theme["surface"]),
+    ):
+        surface.set_fill(fill)
+
+    for button in rounded_buttons:
+        button.set_theme(theme)
+
+    for widget in header.winfo_children():
+        if isinstance(widget, tk.Label):
+            widget.configure(
+                bg=theme["surface"],
+                fg=(
+                    theme["accent"]
+                    if widget is header.winfo_children()[0]
+                    else theme["muted"]
+                ),
+            )
+
+    for widget in sidebar.winfo_children():
+        if isinstance(widget, tk.Label):
+            widget.configure(bg=theme["panel"], fg=theme["muted"])
+        elif isinstance(widget, tk.Button):
+            widget.configure(
+                bg=theme["panel"],
+                fg=theme["text"],
+                activebackground=theme["accent_hover"],
+                activeforeground=theme["accent_text"],
+            )
+
+    for widget in balance_card.winfo_children():
+        if isinstance(widget, tk.Label):
+            widget.configure(
+                bg=theme["accent"],
+                fg=WHITE if widget is balance_label else theme["accent_text"],
+            )
+    balance_surface.set_fill(theme["accent"])
+
+    for widget in auth_header.winfo_children():
+        if isinstance(widget, tk.Label):
+            widget.configure(bg=theme["surface"], fg=theme["accent"])
+
+    for widget in auth.winfo_children():
+        if isinstance(widget, tk.Frame):
+            widget.configure(bg=theme["surface"])
+        elif isinstance(widget, tk.Label):
+            widget.configure(bg=theme["surface"], fg=theme["text"])
+
+    for widget in auth_form.winfo_children():
+        if isinstance(widget, tk.Label):
+            widget.configure(bg=theme["surface"], fg=theme["text"])
+
+    show_page(current_page)
+
+
+apply_theme(active_theme)
 root.mainloop()
