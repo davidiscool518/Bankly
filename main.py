@@ -24,7 +24,7 @@ THEMES = {
     },
     "Yellow": {
         "background": "#FFFBEA",
-        "surface": "#FFFFFF",
+        "surface": "#FFFDF3",
         "panel": "#FFF2B8",
         "text": "#322A0B",
         "muted": "#75682E",
@@ -35,7 +35,7 @@ THEMES = {
     },
     "Aero": {
         "background": "#EAFBFF",
-        "surface": "#FFFFFF",
+        "surface": "#F7FEFF",
         "panel": "#D5F4FA",
         "text": "#12313A",
         "muted": "#4B737D",
@@ -49,6 +49,7 @@ THEMES = {
 active_theme = "Light"
 theme_selectors = []
 rounded_buttons = []
+rounded_surfaces = []
 current_page = "Dashboard"
 
 balance_xrp = 0.00
@@ -196,6 +197,7 @@ class RoundedFrame(tk.Canvas):
         self.radius = radius
         self.margin = margin
         self.content = tk.Frame(self, bg=fill)
+        rounded_surfaces.append(self)
         self.window_id = self.create_window(
             margin, margin, window=self.content, anchor="nw"
         )
@@ -570,13 +572,10 @@ def apply_theme(name):
     for selector in theme_selectors:
         selector.set(name)
 
-    for surface, fill in (
-        (header_surface, theme["surface"]),
-        (sidebar_surface, theme["panel"]),
-        (main_surface, theme["surface"]),
-        (auth_surface, theme["surface"]),
-    ):
-        surface.set_fill(fill)
+    for surface in rounded_surfaces:
+        surface.set_fill(theme["surface"])
+
+    sidebar_surface.set_fill(theme["panel"])
 
     for button in rounded_buttons:
         button.set_theme(theme)
