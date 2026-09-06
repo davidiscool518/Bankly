@@ -547,6 +547,7 @@ def apply_theme(name):
     active_theme = name
     theme = THEMES[name]
 
+    # 1. Update root + ttk styles FIRST
     root.configure(bg=theme["background"])
     styles.configure(
         "TEntry", fieldbackground=theme["surface"], bordercolor=theme["border"]
@@ -569,17 +570,22 @@ def apply_theme(name):
         foreground=theme["text"],
     )
 
+    # 2. Update comboboxes
     for selector in theme_selectors:
         selector.set(name)
 
-    for surface in rounded_surfaces:
-        surface.set_fill(theme["surface"])
-
+    # 3. Apply correct fills to each surface (NO MORE MASS APPLY)
+    header_surface.set_fill(theme["surface"])
+    main_surface.set_fill(theme["surface"])
     sidebar_surface.set_fill(theme["panel"])
+    auth_surface.set_fill(theme["surface"])
+    balance_surface.set_fill(theme["accent"])
 
+    # 4. Update rounded buttons
     for button in rounded_buttons:
         button.set_theme(theme)
 
+    # 5. Header labels
     for widget in header.winfo_children():
         if isinstance(widget, tk.Label):
             widget.configure(
@@ -591,6 +597,7 @@ def apply_theme(name):
                 ),
             )
 
+    # 6. Sidebar
     for widget in sidebar.winfo_children():
         if isinstance(widget, tk.Label):
             widget.configure(bg=theme["panel"], fg=theme["muted"])
@@ -602,28 +609,32 @@ def apply_theme(name):
                 activeforeground=theme["accent_text"],
             )
 
+    # 7. Balance card
     for widget in balance_card.winfo_children():
         if isinstance(widget, tk.Label):
             widget.configure(
                 bg=theme["accent"],
                 fg=WHITE if widget is balance_label else theme["accent_text"],
             )
-    balance_surface.set_fill(theme["accent"])
 
+    # 8. Auth header
     for widget in auth_header.winfo_children():
         if isinstance(widget, tk.Label):
             widget.configure(bg=theme["surface"], fg=theme["accent"])
 
+    # 9. Auth main
     for widget in auth.winfo_children():
         if isinstance(widget, tk.Frame):
             widget.configure(bg=theme["surface"])
         elif isinstance(widget, tk.Label):
             widget.configure(bg=theme["surface"], fg=theme["text"])
 
+    # 10. Auth form
     for widget in auth_form.winfo_children():
         if isinstance(widget, tk.Label):
             widget.configure(bg=theme["surface"], fg=theme["text"])
 
+    # 11. Re-render current page
     show_page(current_page)
 
 
